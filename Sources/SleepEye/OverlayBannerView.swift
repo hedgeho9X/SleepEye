@@ -6,9 +6,10 @@ import SwiftUI
 /// 提示条需要跨过屏幕顶部中间区域，视觉上包住摄像头附近的信息密集区。
 /// 因此宽度按屏幕尺寸动态收敛，避免外接小屏时溢出，也避免大屏上过分铺开。
 enum OverlayBannerLayout {
-    static let panelHeight: CGFloat = 92
-    static let contentHeight: CGFloat = 82
-    static let cornerRadius: CGFloat = 26
+    static let panelHeight: CGFloat = 126
+    static let contentHeight: CGFloat = 116
+    static let cornerRadius: CGFloat = 30
+    static let cameraClearance: CGFloat = 26
 
     static func panelWidth(for screenFrame: CGRect) -> CGFloat {
         let availableWidth = max(420, screenFrame.width - 32)
@@ -43,7 +44,9 @@ final class OverlayBannerViewModel: ObservableObject {
         self.onActivate = onActivate
     }
 
-    /// 更新提示条内容，并让进度数值参与 SwiftUI 的线性动画。
+    /// 更新提示条内容。
+    ///
+    /// 这里不包 `withAnimation`，避免倒计时数字出现补间感；进度条有自己的线性动画。
     func update(
         snapshot: TimerSnapshot,
         title: String,
@@ -51,9 +54,7 @@ final class OverlayBannerViewModel: ObservableObject {
         actionTitle: String?,
         onActivate: (() -> Void)?
     ) {
-        withAnimation(.linear(duration: 1.0)) {
-            self.snapshot = snapshot
-        }
+        self.snapshot = snapshot
         self.title = title
         self.subtitle = subtitle
         self.actionTitle = actionTitle
@@ -94,6 +95,9 @@ struct OverlayBannerView: View {
                         Text(snapshot.remainingText)
                             .font(.system(size: 27, weight: .bold, design: .rounded))
                             .monospacedDigit()
+                            .transaction { transaction in
+                                transaction.animation = nil
+                            }
 
                         if let actionTitle = model.actionTitle {
                             Text(actionTitle)
@@ -107,7 +111,8 @@ struct OverlayBannerView: View {
                 OverlayProgressBar(progress: snapshot.progress, color: iconColor)
             }
             .padding(.horizontal, 26)
-            .padding(.vertical, 14)
+            .padding(.top, OverlayBannerLayout.cameraClearance)
+            .padding(.bottom, 14)
             .frame(maxWidth: .infinity)
             .frame(height: OverlayBannerLayout.contentHeight)
             .background(

@@ -114,7 +114,7 @@ final class OverlayWindowController {
     private func position(_ panel: NSPanel) {
         let screenFrame = NSScreen.main?.frame ?? NSScreen.screens.first?.frame ?? .zero
         let size = panel.frame.size
-        let topPadding: CGFloat = 4
+        let topPadding: CGFloat = -4
         let origin = NSPoint(
             x: screenFrame.midX - size.width / 2,
             y: screenFrame.maxY - size.height - topPadding
