@@ -25,6 +25,7 @@ struct DashboardView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     statusSection
                     statsSection
+                    weeklyStatsSection
                     settingsSection
                 }
                 .padding(22)
@@ -192,6 +193,20 @@ struct DashboardView: View {
         }
     }
 
+    private var weeklyStatsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                sectionTitle("最近 7 天", systemImage: "calendar")
+                Spacer()
+                Text("累计 \(durationText(weeklyFocusSeconds)) 专注")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            WeeklyStatsChart(days: appState.recentStatsDays)
+        }
+    }
+
     private var settingsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             sectionTitle("节奏设置", systemImage: "slider.horizontal.3")
@@ -243,6 +258,12 @@ struct DashboardView: View {
         appState.snapshot.phase == .idle ? settings.selectedPreset : appState.snapshot.preset
     }
 
+    private var weeklyFocusSeconds: TimeInterval {
+        appState.recentStatsDays.reduce(0) { total, day in
+            total + day.totalFocusSeconds
+        }
+    }
+
     private var phaseColor: Color {
         switch appState.snapshot.phase {
         case .resting:
@@ -260,6 +281,99 @@ struct DashboardView: View {
         Label(title, systemImage: systemImage)
             .font(.headline)
             .foregroundStyle(.primary)
+    }
+
+    private func durationText(_ seconds: TimeInterval) -> String {
+        let minutes = Int((seconds / 60).rounded(.down))
+        if minutes <= 0 {
+            return "0 分钟"
+        }
+
+        let hours = minutes / 60
+        let remainingMinutes = minutes % 60
+
+        if hours > 0, remainingMinutes > 0 {
+            return "\(hours) 小时 \(remainingMinutes) 分钟"
+        } else if hours > 0 {
+            return "\(hours) 小时"
+        } else {
+            return "\(remainingMinutes) 分钟"
+        }
+    }
+}
+
+private struct WeeklyStatsChart: View {
+    let days: [DailyStatsDay]
+
+    private var maxFocusSeconds: TimeInterval {
+        max(days.map(\.totalFocusSeconds).max() ?? 0, 1)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .bottom, spacing: 10) {
+                ForEach(days) { day in
+                    VStack(spacing: 8) {
+                        ZStack(alignment: .bottom) {
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .fill(SleepEyePalette.restAccent.opacity(0.10))
+
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .fill(SleepEyePalette.restAccent)
+                                .frame(height: barHeight(for: day))
+                        }
+                        .frame(height: 118)
+                        .overlay(alignment: .top) {
+                            if day.completedFocusSessions > 0 {
+                                Text("\(day.completedFocusSessions)")
+                                    .font(.caption2.weight(.semibold))
+                                    .foregroundStyle(.secondary)
+                                    .padding(.top, 6)
+                            }
+                        }
+                        .accessibilityLabel("\(dayLabel(for: day.dateKey)) 专注")
+                        .accessibilityValue("\(durationText(day.totalFocusSeconds))，\(day.completedFocusSessions) 轮")
+
+                        Text(dayLabel(for: day.dateKey))
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+
+            HStack(spacing: 12) {
+                Label("柱高代表专注时长", systemImage: "timer")
+                Label("数字代表完成轮数", systemImage: "checkmark.circle")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+        .padding(16)
+        .background(.background, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+        }
+    }
+
+    private func barHeight(for day: DailyStatsDay) -> CGFloat {
+        guard day.totalFocusSeconds > 0 else {
+            return 4
+        }
+
+        let ratio = day.totalFocusSeconds / maxFocusSeconds
+        return max(10, CGFloat(ratio) * 118)
+    }
+
+    private func dayLabel(for dateKey: String) -> String {
+        let parts = dateKey.split(separator: "-")
+        guard let day = parts.last else {
+            return dateKey
+        }
+
+        return "\(day)日"
     }
 
     private func durationText(_ seconds: TimeInterval) -> String {

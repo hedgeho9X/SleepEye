@@ -61,6 +61,50 @@ final class DailyStatsStoreTests: XCTestCase {
         XCTAssertEqual(snapshot.totalFocusSeconds, 0)
     }
 
+    func testRecentDaysKeepsPreviousDayHistoryAndFillsEmptyDays() {
+        let suiteName = "DailyStatsStoreTests.recentDays.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer {
+            defaults.removePersistentDomain(forName: suiteName)
+        }
+
+        let firstDay = makeDate(year: 2026, month: 5, day: 20)
+        let thirdDay = makeDate(year: 2026, month: 5, day: 22)
+        let store = DailyStatsStore(defaults: defaults, calendar: .gregorianUTC, now: firstDay)
+        store.recordFocusCompleted(duration: TimeInterval(25 * 60), now: firstDay)
+
+        let days = store.recentDays(count: 3, endingAt: thirdDay)
+
+        XCTAssertEqual(days.map(\.dateKey), ["2026-05-20", "2026-05-21", "2026-05-22"])
+        XCTAssertEqual(days[0].completedFocusSessions, 1)
+        XCTAssertEqual(days[0].totalFocusSeconds, TimeInterval(25 * 60))
+        XCTAssertEqual(days[1].completedFocusSessions, 0)
+        XCTAssertEqual(days[2].completedFocusSessions, 0)
+    }
+
+    func testReloadsPersistedHistoryForPreviousDays() {
+        let suiteName = "DailyStatsStoreTests.persistedHistory.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer {
+            defaults.removePersistentDomain(forName: suiteName)
+        }
+
+        let firstDay = makeDate(year: 2026, month: 5, day: 21)
+        let secondDay = makeDate(year: 2026, month: 5, day: 22)
+        let store = DailyStatsStore(defaults: defaults, calendar: .gregorianUTC, now: firstDay)
+        store.recordFocusCompleted(duration: TimeInterval(50 * 60), now: firstDay)
+        _ = store.currentSnapshot(now: secondDay)
+
+        let reloaded = DailyStatsStore(defaults: defaults, calendar: .gregorianUTC, now: secondDay)
+        let days = reloaded.recentDays(count: 2, endingAt: secondDay)
+
+        XCTAssertEqual(days[0].dateKey, "2026-05-21")
+        XCTAssertEqual(days[0].completedFocusSessions, 1)
+        XCTAssertEqual(days[0].totalFocusSeconds, TimeInterval(50 * 60))
+        XCTAssertEqual(days[1].dateKey, "2026-05-22")
+        XCTAssertEqual(days[1].completedFocusSessions, 0)
+    }
+
     private func makeDate(year: Int, month: Int, day: Int) -> Date {
         DateComponents(
             calendar: .gregorianUTC,

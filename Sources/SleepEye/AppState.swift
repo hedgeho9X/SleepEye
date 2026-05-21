@@ -11,6 +11,7 @@ import SleepEyeCore
 final class AppState: ObservableObject {
     @Published private(set) var snapshot: TimerSnapshot
     @Published private(set) var dailyStats: DailyStatsSnapshot
+    @Published private(set) var recentStatsDays: [DailyStatsDay]
 
     let settings: SettingsStore
 
@@ -42,6 +43,7 @@ final class AppState: ObservableObject {
         self.fullScreenBreakWindowController = fullScreenBreakWindowController
         snapshot = core.snapshot()
         dailyStats = dailyStatsStore.currentSnapshot()
+        recentStatsDays = dailyStatsStore.recentDays(count: 7)
 
         core.autoStartNextRound = settings.autoStartNextRound
         startTicker()
@@ -178,14 +180,14 @@ final class AppState: ObservableObject {
         switch event {
         case .focusCompleted:
             dailyStatsStore.recordFocusCompleted(duration: previousSnapshot.totalSeconds)
-            dailyStats = dailyStatsStore.snapshot
+            refreshStats()
             notificationScheduler.deliverFocusCompleted()
             if settings.autoOpenBreakFullscreen {
                 showFullScreenBreakCountdown()
             }
         case .breakCompleted:
             dailyStatsStore.recordBreakCompleted(duration: previousSnapshot.totalSeconds)
-            dailyStats = dailyStatsStore.snapshot
+            refreshStats()
             notificationScheduler.deliverBreakCompleted(autoStartedNextRound: settings.autoStartNextRound)
         case .none:
             break
@@ -194,7 +196,7 @@ final class AppState: ObservableObject {
 
     private func refresh() {
         snapshot = core.snapshot()
-        dailyStats = dailyStatsStore.currentSnapshot()
+        refreshStats()
         overlayWindowController.update(
             for: snapshot,
             reminderStrength: settings.reminderStrength,
@@ -203,5 +205,10 @@ final class AppState: ObservableObject {
             }
         )
         fullScreenBreakWindowController.update(for: snapshot)
+    }
+
+    private func refreshStats() {
+        dailyStats = dailyStatsStore.currentSnapshot()
+        recentStatsDays = dailyStatsStore.recentDays(count: 7)
     }
 }
