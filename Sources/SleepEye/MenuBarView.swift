@@ -7,6 +7,7 @@ import SwiftUI
 /// 面板保持操作密度：用户能快速看到剩余时间，并完成开始、暂停、休息、跳过等动作。
 /// 更详细的偏好配置放到 Settings 窗口中，避免菜单栏变成复杂控制台。
 struct MenuBarView: View {
+    @Environment(\.openWindow) private var openWindow
     @ObservedObject private var appState: AppState
     @ObservedObject private var settings: SettingsStore
 
@@ -162,7 +163,7 @@ struct MenuBarView: View {
     private var footerActions: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text("今日完成 \(appState.completedFocusSessionsToday) 轮")
+                Text("今日完成 \(appState.dailyStats.completedFocusSessions) 轮")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Text(settings.reminderStrength.title)
@@ -171,6 +172,14 @@ struct MenuBarView: View {
             }
 
             Spacer()
+
+            Button {
+                openWindow(id: SleepEyeWindowID.dashboard)
+                NSApp.activate(ignoringOtherApps: true)
+            } label: {
+                Image(systemName: "macwindow")
+            }
+            .help("打开主窗口")
 
             Button {
                 NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)

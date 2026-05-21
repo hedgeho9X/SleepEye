@@ -10,7 +10,7 @@ import SleepEyeCore
 @MainActor
 final class AppState: ObservableObject {
     @Published private(set) var snapshot: TimerSnapshot
-    @Published private(set) var completedFocusSessionsToday: Int
+    @Published private(set) var dailyStats: DailyStatsSnapshot
 
     let settings: SettingsStore
 
@@ -41,7 +41,7 @@ final class AppState: ObservableObject {
         self.overlayWindowController = overlayWindowController
         self.fullScreenBreakWindowController = fullScreenBreakWindowController
         snapshot = core.snapshot()
-        completedFocusSessionsToday = dailyStatsStore.completedFocusSessions
+        dailyStats = dailyStatsStore.currentSnapshot()
 
         core.autoStartNextRound = settings.autoStartNextRound
         startTicker()
@@ -171,19 +171,21 @@ final class AppState: ObservableObject {
 
     private func handleTick() {
         core.autoStartNextRound = settings.autoStartNextRound
+        let previousSnapshot = core.snapshot()
         let event = core.tick()
         refresh()
 
         switch event {
         case .focusCompleted:
-            dailyStatsStore.recordFocusCompleted()
-            completedFocusSessionsToday = dailyStatsStore.completedFocusSessions
+            dailyStatsStore.recordFocusCompleted(duration: previousSnapshot.totalSeconds)
+            dailyStats = dailyStatsStore.snapshot
             notificationScheduler.deliverFocusCompleted()
             if settings.autoOpenBreakFullscreen {
                 showFullScreenBreakCountdown()
             }
         case .breakCompleted:
-            dailyStatsStore.recordBreakCompleted()
+            dailyStatsStore.recordBreakCompleted(duration: previousSnapshot.totalSeconds)
+            dailyStats = dailyStatsStore.snapshot
             notificationScheduler.deliverBreakCompleted(autoStartedNextRound: settings.autoStartNextRound)
         case .none:
             break
@@ -192,6 +194,7 @@ final class AppState: ObservableObject {
 
     private func refresh() {
         snapshot = core.snapshot()
+        dailyStats = dailyStatsStore.currentSnapshot()
         overlayWindowController.update(
             for: snapshot,
             reminderStrength: settings.reminderStrength,
