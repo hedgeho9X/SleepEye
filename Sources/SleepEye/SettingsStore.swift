@@ -14,6 +14,7 @@ final class SettingsStore: ObservableObject {
         static let reminderStrength = "reminderStrength"
         static let customFocusMinutes = "customFocusMinutes"
         static let customBreakMinutes = "customBreakMinutes"
+        static let autoOpenBreakFullscreen = "autoOpenBreakFullscreen"
     }
 
     private enum Limits {
@@ -43,6 +44,16 @@ final class SettingsStore: ObservableObject {
     @Published var reminderStrength: ReminderStrength {
         didSet {
             defaults.set(reminderStrength.rawValue, forKey: Keys.reminderStrength)
+        }
+    }
+
+    /// 休息开始时是否自动打开全屏倒计时。
+    ///
+    /// 对护眼工具来说，全屏休息才是真正能让用户离开屏幕的主体验。
+    /// 默认开启，但保留开关，避免会议、投屏或特殊工作流里造成压力。
+    @Published var autoOpenBreakFullscreen: Bool {
+        didSet {
+            defaults.set(autoOpenBreakFullscreen, forKey: Keys.autoOpenBreakFullscreen)
         }
     }
 
@@ -78,6 +89,12 @@ final class SettingsStore: ObservableObject {
 
         let strengthValue = defaults.string(forKey: Keys.reminderStrength) ?? ReminderStrength.standard.rawValue
         reminderStrength = ReminderStrength(rawValue: strengthValue) ?? .standard
+
+        if defaults.object(forKey: Keys.autoOpenBreakFullscreen) == nil {
+            autoOpenBreakFullscreen = true
+        } else {
+            autoOpenBreakFullscreen = defaults.bool(forKey: Keys.autoOpenBreakFullscreen)
+        }
 
         let storedFocusMinutes = defaults.object(forKey: Keys.customFocusMinutes) as? Int ?? 25
         let storedBreakMinutes = defaults.object(forKey: Keys.customBreakMinutes) as? Int ?? 5

@@ -48,6 +48,7 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
 
                 Toggle("休息结束后自动进入下一轮", isOn: $settings.autoStartNextRound)
+                Toggle("休息开始时自动打开全屏倒计时", isOn: $settings.autoOpenBreakFullscreen)
             }
 
             Section("提醒") {

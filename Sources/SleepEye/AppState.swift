@@ -113,6 +113,9 @@ final class AppState: ObservableObject {
     func startBreakNow() {
         core.startBreak()
         refresh()
+        if settings.autoOpenBreakFullscreen {
+            showFullScreenBreakCountdown()
+        }
     }
 
     /// 打开沉浸式全屏休息倒计时。
@@ -168,6 +171,9 @@ final class AppState: ObservableObject {
         switch event {
         case .focusCompleted:
             notificationScheduler.deliverFocusCompleted()
+            if settings.autoOpenBreakFullscreen {
+                showFullScreenBreakCountdown()
+            }
         case .breakCompleted:
             notificationScheduler.deliverBreakCompleted(autoStartedNextRound: settings.autoStartNextRound)
         case .none:
