@@ -69,8 +69,8 @@ final class FullScreenBreakWindowController {
         )
 
         window.level = .screenSaver
-        window.backgroundColor = .white
-        window.isOpaque = true
+        window.backgroundColor = .clear
+        window.isOpaque = false
 
         // 让窗口覆盖当前桌面和全屏空间；用户仍然可以通过按钮退出，不会被系统全屏模式困住。
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]

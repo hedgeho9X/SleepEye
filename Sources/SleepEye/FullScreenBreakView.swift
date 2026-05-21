@@ -12,11 +12,11 @@ final class FullScreenBreakViewModel: ObservableObject {
         self.snapshot = snapshot
     }
 
-    /// 用线性动画推进倒计时进度；延长休息时，新的总时长也会随快照一起生效。
+    /// 更新休息倒计时。
+    ///
+    /// 不在这里包全局动画，避免倒计时数字出现补间；圆环和进度条各自只动画自己的进度。
     func update(snapshot: TimerSnapshot) {
-        withAnimation(.linear(duration: 1.0)) {
-            self.snapshot = snapshot
-        }
+        self.snapshot = snapshot
     }
 }
 
@@ -61,15 +61,18 @@ struct FullScreenBreakView: View {
     }
 
     private var background: some View {
-        LinearGradient(
-            colors: [
-                SleepEyePalette.restBackground,
-                Color.white,
-                SleepEyePalette.restAccentSoft,
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+        ZStack {
+            SleepEyePalette.restBackground
+
+            LinearGradient(
+                colors: [
+                    Color.white.opacity(0.78),
+                    SleepEyePalette.restAccentSoft.opacity(0.42),
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
         .ignoresSafeArea()
     }
 
@@ -79,7 +82,7 @@ struct FullScreenBreakView: View {
 
     private var topBar: some View {
         HStack {
-            Label("SleepEye Break", systemImage: "eye")
+            Label("SleepEye Break", systemImage: "circle")
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(SleepEyePalette.restAccent)
 
@@ -112,6 +115,9 @@ struct FullScreenBreakView: View {
                 Text(snapshot.remainingText)
                     .font(.system(size: 92, weight: .bold, design: .rounded))
                     .monospacedDigit()
+                    .transaction { transaction in
+                        transaction.animation = nil
+                    }
                 Text("剩余休息时间")
                     .font(.headline)
                     .foregroundStyle(.secondary)
@@ -182,6 +188,7 @@ struct FullScreenBreakView: View {
             .controlSize(.large)
             .keyboardShortcut(.cancelAction)
         }
+        .tint(SleepEyePalette.restAccent)
     }
 }
 
