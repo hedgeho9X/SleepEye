@@ -162,7 +162,7 @@ struct MenuBarView: View {
     private var footerActions: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text("今日完成 \(appState.snapshot.completedFocusSessions) 轮")
+                Text("今日完成 \(appState.completedFocusSessionsToday) 轮")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Text(settings.reminderStrength.title)

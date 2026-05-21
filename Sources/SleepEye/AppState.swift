@@ -10,10 +10,12 @@ import SleepEyeCore
 @MainActor
 final class AppState: ObservableObject {
     @Published private(set) var snapshot: TimerSnapshot
+    @Published private(set) var completedFocusSessionsToday: Int
 
     let settings: SettingsStore
 
     private let core: TimerCore
+    private let dailyStatsStore: DailyStatsStore
     private let notificationScheduler: NotificationScheduler
     private let overlayWindowController: OverlayWindowController
     private let fullScreenBreakWindowController: FullScreenBreakWindowController
@@ -22,20 +24,24 @@ final class AppState: ObservableObject {
     init(
         core: TimerCore = TimerCore(),
         settings: SettingsStore? = nil,
+        dailyStatsStore: DailyStatsStore? = nil,
         notificationScheduler: NotificationScheduler = NotificationScheduler(),
         overlayWindowController: OverlayWindowController? = nil,
         fullScreenBreakWindowController: FullScreenBreakWindowController? = nil
     ) {
         let settings = settings ?? SettingsStore()
+        let dailyStatsStore = dailyStatsStore ?? DailyStatsStore()
         let overlayWindowController = overlayWindowController ?? OverlayWindowController()
         let fullScreenBreakWindowController = fullScreenBreakWindowController ?? FullScreenBreakWindowController()
 
         self.core = core
         self.settings = settings
+        self.dailyStatsStore = dailyStatsStore
         self.notificationScheduler = notificationScheduler
         self.overlayWindowController = overlayWindowController
         self.fullScreenBreakWindowController = fullScreenBreakWindowController
         snapshot = core.snapshot()
+        completedFocusSessionsToday = dailyStatsStore.completedFocusSessions
 
         core.autoStartNextRound = settings.autoStartNextRound
         startTicker()
@@ -170,11 +176,14 @@ final class AppState: ObservableObject {
 
         switch event {
         case .focusCompleted:
+            dailyStatsStore.recordFocusCompleted()
+            completedFocusSessionsToday = dailyStatsStore.completedFocusSessions
             notificationScheduler.deliverFocusCompleted()
             if settings.autoOpenBreakFullscreen {
                 showFullScreenBreakCountdown()
             }
         case .breakCompleted:
+            dailyStatsStore.recordBreakCompleted()
             notificationScheduler.deliverBreakCompleted(autoStartedNextRound: settings.autoStartNextRound)
         case .none:
             break
