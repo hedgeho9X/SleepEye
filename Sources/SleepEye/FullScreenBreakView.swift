@@ -1,12 +1,31 @@
 import SleepEyeCore
 import SwiftUI
 
+/// 全屏休息页的可观察状态。
+///
+/// 全屏窗口会持续存在，只更新这里的快照。相比每秒替换 `NSHostingView`，
+/// 这种做法能让圆环和横向进度条获得连续动画，视觉上不会一格一格跳。
+final class FullScreenBreakViewModel: ObservableObject {
+    @Published var snapshot: TimerSnapshot
+
+    init(snapshot: TimerSnapshot) {
+        self.snapshot = snapshot
+    }
+
+    /// 用线性动画推进倒计时进度；延长休息时，新的总时长也会随快照一起生效。
+    func update(snapshot: TimerSnapshot) {
+        withAnimation(.linear(duration: 1.0)) {
+            self.snapshot = snapshot
+        }
+    }
+}
+
 /// 白绿风格的全屏休息倒计时。
 ///
 /// 当前产品策略是休息开始默认进入全屏，但界面必须始终保留明确出口。
 /// 护眼工具要帮助用户离开屏幕，而不是制造“被锁住”的压力。
 struct FullScreenBreakView: View {
-    let snapshot: TimerSnapshot
+    @ObservedObject var model: FullScreenBreakViewModel
     let onEndBreak: () -> Void
     let onExtendBreak: () -> Void
     let onDismiss: () -> Void
@@ -31,6 +50,7 @@ struct FullScreenBreakView: View {
                 }
 
                 countdownRing
+                breakProgressBar
                 restSuggestions
                 actionButtons
 
@@ -51,6 +71,10 @@ struct FullScreenBreakView: View {
             endPoint: .bottomTrailing
         )
         .ignoresSafeArea()
+    }
+
+    private var snapshot: TimerSnapshot {
+        model.snapshot
     }
 
     private var topBar: some View {
@@ -82,6 +106,7 @@ struct FullScreenBreakView: View {
                     style: StrokeStyle(lineWidth: 18, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
+                .animation(.linear(duration: 1.0), value: snapshot.progress)
 
             VStack(spacing: 10) {
                 Text(snapshot.remainingText)
@@ -93,6 +118,11 @@ struct FullScreenBreakView: View {
             }
         }
         .frame(width: 330, height: 330)
+    }
+
+    private var breakProgressBar: some View {
+        BreakProgressBar(progress: snapshot.progress)
+            .frame(maxWidth: 520)
     }
 
     private var restSuggestions: some View {
@@ -152,5 +182,24 @@ struct FullScreenBreakView: View {
             .controlSize(.large)
             .keyboardShortcut(.cancelAction)
         }
+    }
+}
+
+private struct BreakProgressBar: View {
+    let progress: Double
+
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(Color.green.opacity(0.13))
+
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(Color.green)
+                    .frame(width: proxy.size.width * CGFloat(progress))
+            }
+        }
+        .frame(height: 12)
+        .animation(.linear(duration: 1.0), value: progress)
     }
 }

@@ -10,6 +10,7 @@ import SwiftUI
 @MainActor
 final class OverlayWindowController {
     private var panel: NSPanel?
+    private var bannerViewModel: OverlayBannerViewModel?
 
     /// 根据当前计时快照决定显示或隐藏顶部浮层。
     ///
@@ -48,23 +49,35 @@ final class OverlayWindowController {
     ) {
         let panel = panel ?? makePanel()
         self.panel = panel
+        resize(panel)
 
-        panel.contentView = NSHostingView(
-            rootView: OverlayBannerView(
+        if let bannerViewModel {
+            bannerViewModel.update(
                 snapshot: snapshot,
                 title: title,
                 subtitle: subtitle,
                 actionTitle: actionTitle,
                 onActivate: onActivate
             )
-        )
+        } else {
+            let bannerViewModel = OverlayBannerViewModel(
+                snapshot: snapshot,
+                title: title,
+                subtitle: subtitle,
+                actionTitle: actionTitle,
+                onActivate: onActivate
+            )
+            self.bannerViewModel = bannerViewModel
+            panel.contentView = NSHostingView(rootView: OverlayBannerView(model: bannerViewModel))
+        }
+
         position(panel)
         panel.orderFrontRegardless()
     }
 
     private func makePanel() -> NSPanel {
         let panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 380, height: 86),
+            contentRect: NSRect(x: 0, y: 0, width: 720, height: OverlayBannerLayout.panelHeight),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
@@ -82,10 +95,24 @@ final class OverlayWindowController {
         return panel
     }
 
+    private func resize(_ panel: NSPanel) {
+        let screenFrame = NSScreen.main?.frame ?? NSScreen.screens.first?.frame ?? .zero
+        let size = NSSize(
+            width: OverlayBannerLayout.panelWidth(for: screenFrame),
+            height: OverlayBannerLayout.panelHeight
+        )
+
+        guard panel.frame.size != size else {
+            return
+        }
+
+        panel.setFrame(NSRect(origin: panel.frame.origin, size: size), display: true)
+    }
+
     private func position(_ panel: NSPanel) {
-        let screenFrame = NSScreen.main?.visibleFrame ?? NSScreen.screens.first?.visibleFrame ?? .zero
+        let screenFrame = NSScreen.main?.frame ?? NSScreen.screens.first?.frame ?? .zero
         let size = panel.frame.size
-        let topPadding: CGFloat = 10
+        let topPadding: CGFloat = 6
         let origin = NSPoint(
             x: screenFrame.midX - size.width / 2,
             y: screenFrame.maxY - size.height - topPadding

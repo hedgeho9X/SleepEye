@@ -10,6 +10,7 @@ import SwiftUI
 @MainActor
 final class FullScreenBreakWindowController {
     private var window: NSWindow?
+    private var viewModel: FullScreenBreakViewModel?
     private var onEndBreak: (() -> Void)?
     private var onExtendBreak: (() -> Void)?
 
@@ -82,20 +83,27 @@ final class FullScreenBreakWindowController {
         }
 
         position(window)
-        window.contentView = NSHostingView(
-            rootView: FullScreenBreakView(
-                snapshot: snapshot,
-                onEndBreak: { [weak self] in
-                    self?.onEndBreak?()
-                },
-                onExtendBreak: { [weak self] in
-                    self?.onExtendBreak?()
-                },
-                onDismiss: { [weak self] in
-                    self?.hide()
-                }
+
+        if let viewModel {
+            viewModel.update(snapshot: snapshot)
+        } else {
+            let viewModel = FullScreenBreakViewModel(snapshot: snapshot)
+            self.viewModel = viewModel
+            window.contentView = NSHostingView(
+                rootView: FullScreenBreakView(
+                    model: viewModel,
+                    onEndBreak: { [weak self] in
+                        self?.onEndBreak?()
+                    },
+                    onExtendBreak: { [weak self] in
+                        self?.onExtendBreak?()
+                    },
+                    onDismiss: { [weak self] in
+                        self?.hide()
+                    }
+                )
             )
-        )
+        }
     }
 
     private func position(_ window: NSWindow) {

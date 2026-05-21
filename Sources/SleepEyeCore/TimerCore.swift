@@ -11,8 +11,10 @@ public final class TimerCore {
 
     private var activeSessionKind: TimerSessionKind?
     private var targetEndDate: Date?
+    private var activeSessionTotalDuration: TimeInterval?
     private var pausedRemainingSeconds: TimeInterval?
     private var pausedSessionKind: TimerSessionKind?
+    private var pausedSessionTotalDuration: TimeInterval?
     private(set) public var completedFocusSessions: Int
 
     public init(
@@ -35,8 +37,10 @@ public final class TimerCore {
 
         activeSessionKind = .focus
         targetEndDate = now.addingTimeInterval(selectedPreset.focusDuration)
+        activeSessionTotalDuration = selectedPreset.focusDuration
         pausedRemainingSeconds = nil
         pausedSessionKind = nil
+        pausedSessionTotalDuration = nil
     }
 
     /// 立即进入休息阶段。
@@ -45,8 +49,10 @@ public final class TimerCore {
     public func startBreak(now: Date = Date()) {
         activeSessionKind = .rest
         targetEndDate = now.addingTimeInterval(selectedPreset.breakDuration)
+        activeSessionTotalDuration = selectedPreset.breakDuration
         pausedRemainingSeconds = nil
         pausedSessionKind = nil
+        pausedSessionTotalDuration = nil
     }
 
     /// 暂停当前阶段，并记录暂停时的剩余时间。
@@ -59,8 +65,10 @@ public final class TimerCore {
 
         pausedSessionKind = activeSessionKind
         pausedRemainingSeconds = max(0, targetEndDate.timeIntervalSince(now))
+        pausedSessionTotalDuration = activeSessionTotalDuration ?? totalDuration(for: activeSessionKind)
         self.activeSessionKind = nil
         self.targetEndDate = nil
+        self.activeSessionTotalDuration = nil
     }
 
     /// 从暂停状态恢复，继续原本的专注或休息阶段。
@@ -71,8 +79,10 @@ public final class TimerCore {
 
         activeSessionKind = pausedSessionKind
         targetEndDate = now.addingTimeInterval(pausedRemainingSeconds)
+        activeSessionTotalDuration = pausedSessionTotalDuration ?? totalDuration(for: pausedSessionKind)
         self.pausedSessionKind = nil
         self.pausedRemainingSeconds = nil
+        self.pausedSessionTotalDuration = nil
     }
 
     /// 跳过当前休息并根据设置决定是否进入下一轮专注。
@@ -94,11 +104,18 @@ public final class TimerCore {
     ///
     /// 主要用于“稍后休息”或“延长休息”。如果当前处于暂停状态，
     /// 则只增加暂停记录里的剩余时间，不会意外恢复计时。
+    /// 同时会更新“本轮总时长”，让 UI 进度条按新的总长度重新计算比例。
     public func extendCurrentSession(by interval: TimeInterval) {
+        guard interval > 0 else {
+            return
+        }
+
         if let targetEndDate {
             self.targetEndDate = targetEndDate.addingTimeInterval(interval)
+            activeSessionTotalDuration = (activeSessionTotalDuration ?? totalDuration(for: activeSessionKind)) + interval
         } else if let pausedRemainingSeconds {
             self.pausedRemainingSeconds = pausedRemainingSeconds + interval
+            pausedSessionTotalDuration = (pausedSessionTotalDuration ?? totalDuration(for: pausedSessionKind)) + interval
         }
     }
 
@@ -106,8 +123,10 @@ public final class TimerCore {
     public func stop() {
         activeSessionKind = nil
         targetEndDate = nil
+        activeSessionTotalDuration = nil
         pausedRemainingSeconds = nil
         pausedSessionKind = nil
+        pausedSessionTotalDuration = nil
     }
 
     /// 让状态机推进到指定时间，并在阶段结束时返回对应事件。
@@ -186,13 +205,21 @@ private extension TimerCore {
     }
 
     func totalDuration(for sessionKind: TimerSessionKind?) -> TimeInterval {
+        if sessionKind == activeSessionKind, let activeSessionTotalDuration {
+            return activeSessionTotalDuration
+        }
+
+        if sessionKind == pausedSessionKind, let pausedSessionTotalDuration {
+            return pausedSessionTotalDuration
+        }
+
         switch sessionKind {
         case .focus:
-            selectedPreset.focusDuration
+            return selectedPreset.focusDuration
         case .rest:
-            selectedPreset.breakDuration
+            return selectedPreset.breakDuration
         case .none:
-            0
+            return 0
         }
     }
 

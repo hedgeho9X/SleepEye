@@ -45,6 +45,34 @@ final class TimerCoreTests: XCTestCase {
         XCTAssertEqual(snapshot.remainingSeconds, TimerPreset.pomodoro.focusDuration - 120)
     }
 
+    func testExtendingRunningBreakAdjustsTotalDurationAndProgress() {
+        let start = Date(timeIntervalSince1970: 3_500)
+        let core = TimerCore(selectedPreset: .eyeCare)
+        core.startBreak(now: start)
+
+        core.extendCurrentSession(by: 60)
+
+        let snapshot = core.snapshot(now: start.addingTimeInterval(10))
+        XCTAssertEqual(snapshot.phase, .resting)
+        XCTAssertEqual(snapshot.remainingSeconds, TimerPreset.eyeCare.breakDuration + 50)
+        XCTAssertEqual(snapshot.totalSeconds, TimerPreset.eyeCare.breakDuration + 60)
+        XCTAssertEqual(snapshot.progress, 10 / (TimerPreset.eyeCare.breakDuration + 60), accuracy: 0.0001)
+    }
+
+    func testExtendingPausedSessionAdjustsTotalDurationAndKeepsPausedState() {
+        let start = Date(timeIntervalSince1970: 3_600)
+        let core = TimerCore(selectedPreset: .pomodoro)
+        core.startFocus(now: start)
+
+        core.pause(now: start.addingTimeInterval(120))
+        core.extendCurrentSession(by: 60)
+
+        let snapshot = core.snapshot(now: start.addingTimeInterval(300))
+        XCTAssertEqual(snapshot.phase, .paused)
+        XCTAssertEqual(snapshot.remainingSeconds, TimerPreset.pomodoro.focusDuration - 60)
+        XCTAssertEqual(snapshot.totalSeconds, TimerPreset.pomodoro.focusDuration + 60)
+    }
+
     func testBreakCompletionAutoStartsNextFocusWhenEnabled() {
         let start = Date(timeIntervalSince1970: 4_000)
         let core = TimerCore(selectedPreset: .eyeCare, autoStartNextRound: true)
