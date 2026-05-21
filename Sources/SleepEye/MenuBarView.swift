@@ -44,7 +44,7 @@ struct MenuBarView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(appState.snapshot.phase.title)
                     .font(.headline)
-                Text(appState.snapshot.preset.title)
+                Text(displayedPreset.title)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -60,7 +60,7 @@ struct MenuBarView: View {
 
     private var presetPicker: some View {
         Picker("预设", selection: $settings.selectedPresetID) {
-            ForEach(TimerPreset.builtIn) { preset in
+            ForEach(settings.selectablePresets) { preset in
                 Text(preset.title).tag(preset.id)
             }
         }
@@ -71,6 +71,10 @@ struct MenuBarView: View {
 
     private var controls: some View {
         VStack(spacing: 8) {
+            if settings.selectedPresetID == TimerPreset.customID && appState.snapshot.phase == .idle {
+                customDurationControls
+            }
+
             HStack(spacing: 8) {
                 if appState.snapshot.phase == .idle {
                     Button {
@@ -128,6 +132,33 @@ struct MenuBarView: View {
         }
     }
 
+    private var customDurationControls: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Stepper(value: $settings.customFocusMinutes, in: 1...180) {
+                HStack {
+                    Text("工作")
+                    Spacer()
+                    Text("\(settings.customFocusMinutes) 分钟")
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Stepper(value: $settings.customBreakMinutes, in: 1...60) {
+                HStack {
+                    Text("休息")
+                    Spacer()
+                    Text("\(settings.customBreakMinutes) 分钟")
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .font(.caption)
+        .padding(10)
+        .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
+    }
+
     private var footerActions: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
@@ -169,5 +200,10 @@ struct MenuBarView: View {
         case .idle:
             .secondary
         }
+    }
+
+    /// 空闲时展示即将使用的设置预设；计时中展示当前轮次快照，避免用户改设置后当前轮文案跳变。
+    private var displayedPreset: TimerPreset {
+        appState.snapshot.phase == .idle ? settings.selectedPreset : appState.snapshot.preset
     }
 }

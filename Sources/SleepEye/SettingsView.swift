@@ -12,7 +12,7 @@ struct SettingsView: View {
         Form {
             Section("计时") {
                 Picker("默认预设", selection: $settings.selectedPresetID) {
-                    ForEach(TimerPreset.builtIn) { preset in
+                    ForEach(settings.selectablePresets) { preset in
                         VStack(alignment: .leading) {
                             Text(preset.title)
                             Text(preset.description)
@@ -22,6 +22,30 @@ struct SettingsView: View {
                         .tag(preset.id)
                     }
                 }
+
+                Stepper(value: $settings.customFocusMinutes, in: 1...180) {
+                    HStack {
+                        Text("自定义工作时长")
+                        Spacer()
+                        Text("\(settings.customFocusMinutes) 分钟")
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Stepper(value: $settings.customBreakMinutes, in: 1...60) {
+                    HStack {
+                        Text("自定义休息时长")
+                        Spacer()
+                        Text("\(settings.customBreakMinutes) 分钟")
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Text("选择“自定义”预设后，下一轮会使用这里设置的工作和休息时长。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
 
                 Toggle("休息结束后自动进入下一轮", isOn: $settings.autoStartNextRound)
             }

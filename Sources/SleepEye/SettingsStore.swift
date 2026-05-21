@@ -12,6 +12,13 @@ final class SettingsStore: ObservableObject {
         static let selectedPresetID = "selectedPresetID"
         static let autoStartNextRound = "autoStartNextRound"
         static let reminderStrength = "reminderStrength"
+        static let customFocusMinutes = "customFocusMinutes"
+        static let customBreakMinutes = "customBreakMinutes"
+    }
+
+    private enum Limits {
+        static let focusMinutes = 1...180
+        static let breakMinutes = 1...60
     }
 
     private let defaults: UserDefaults
@@ -39,6 +46,24 @@ final class SettingsStore: ObservableObject {
         }
     }
 
+    /// 用户自定义的每轮工作时长，单位为分钟。
+    ///
+    /// 使用分钟而不是秒，是因为设置页面向普通使用者；秒级配置后续可以作为高级选项再加。
+    @Published var customFocusMinutes: Int {
+        didSet {
+            customFocusMinutes = Self.clamp(customFocusMinutes, to: Limits.focusMinutes)
+            defaults.set(customFocusMinutes, forKey: Keys.customFocusMinutes)
+        }
+    }
+
+    /// 用户自定义的每轮休息时长，单位为分钟。
+    @Published var customBreakMinutes: Int {
+        didSet {
+            customBreakMinutes = Self.clamp(customBreakMinutes, to: Limits.breakMinutes)
+            defaults.set(customBreakMinutes, forKey: Keys.customBreakMinutes)
+        }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
 
@@ -52,10 +77,41 @@ final class SettingsStore: ObservableObject {
 
         let strengthValue = defaults.string(forKey: Keys.reminderStrength) ?? ReminderStrength.standard.rawValue
         reminderStrength = ReminderStrength(rawValue: strengthValue) ?? .standard
+
+        let storedFocusMinutes = defaults.object(forKey: Keys.customFocusMinutes) as? Int ?? 25
+        let storedBreakMinutes = defaults.object(forKey: Keys.customBreakMinutes) as? Int ?? 5
+        customFocusMinutes = Self.clamp(storedFocusMinutes, to: Limits.focusMinutes)
+        customBreakMinutes = Self.clamp(storedBreakMinutes, to: Limits.breakMinutes)
     }
 
-    /// 当前设置对应的计时预设。找不到旧标识时会回退到经典番茄钟。
+    /// 当前设置对应的计时预设。
+    ///
+    /// 自定义预设每次从最新设置生成，确保用户刚改完时长后，下一轮立即生效。
     var selectedPreset: TimerPreset {
-        TimerPreset.preset(for: selectedPresetID)
+        if selectedPresetID == TimerPreset.customID {
+            return customPreset
+        }
+
+        return TimerPreset.preset(for: selectedPresetID)
+    }
+
+    /// 自定义预设的展示模型。它不写入核心层静态列表，因为时长来自用户设置。
+    var customPreset: TimerPreset {
+        TimerPreset(
+            id: TimerPreset.customID,
+            title: "\(customFocusMinutes) / \(customBreakMinutes) 自定义",
+            focusDuration: TimeInterval(customFocusMinutes * 60),
+            breakDuration: TimeInterval(customBreakMinutes * 60),
+            description: "按你设定的工作和休息时长执行。"
+        )
+    }
+
+    /// 设置页和菜单栏使用的完整预设列表。
+    var selectablePresets: [TimerPreset] {
+        TimerPreset.builtIn + [customPreset]
+    }
+
+    private static func clamp(_ value: Int, to limits: ClosedRange<Int>) -> Int {
+        min(max(value, limits.lowerBound), limits.upperBound)
     }
 }

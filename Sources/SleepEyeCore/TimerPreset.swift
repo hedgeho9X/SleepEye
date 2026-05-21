@@ -36,6 +36,9 @@ public struct TimerPreset: Codable, Equatable, Identifiable, Sendable {
 }
 
 public extension TimerPreset {
+    /// 自定义预设的稳定标识。具体时长由 `SettingsStore` 读取用户配置后动态生成。
+    static let customID = "custom"
+
     /// 经典番茄钟：适合默认工作节奏，也是首次打开应用时的默认选择。
     static let pomodoro = TimerPreset(
         id: "pomodoro-25-5",
