@@ -51,7 +51,8 @@ final class SettingsStore: ObservableObject {
     /// 使用分钟而不是秒，是因为设置页面向普通使用者；秒级配置后续可以作为高级选项再加。
     @Published var customFocusMinutes: Int {
         didSet {
-            customFocusMinutes = Self.clamp(customFocusMinutes, to: Limits.focusMinutes)
+            // Stepper 和初始化入口已经负责范围裁剪；这里不要再给属性本身赋值，
+            // 否则 `@Published` 会递归发送变更并导致 SwiftUI 崩溃。
             defaults.set(customFocusMinutes, forKey: Keys.customFocusMinutes)
         }
     }
@@ -59,7 +60,7 @@ final class SettingsStore: ObservableObject {
     /// 用户自定义的每轮休息时长，单位为分钟。
     @Published var customBreakMinutes: Int {
         didSet {
-            customBreakMinutes = Self.clamp(customBreakMinutes, to: Limits.breakMinutes)
+            // 和工作时长保持同一策略：只持久化，不在 `didSet` 内二次写回属性。
             defaults.set(customBreakMinutes, forKey: Keys.customBreakMinutes)
         }
     }
