@@ -8,6 +8,8 @@
     <string>SleepEye</string>
     <key>CFBundleIdentifier</key>
     <string>com.hedgeho9x.SleepEye</string>
+    <key>CFBundleIconFile</key>
+    <string>SleepEye</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>

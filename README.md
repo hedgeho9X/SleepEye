@@ -43,11 +43,17 @@ open dist/SleepEye.app
 
 The generated app is unsigned and intended for local development. Public release builds still need signing and notarization.
 
+The bundle includes a local `.icns` app icon generated from the source SVG in `docs/assets/icon/`.
+
 ## Test
 
 ```bash
 env CLANG_MODULE_CACHE_PATH=.build/clang-module-cache swift test --cache-path .build/swiftpm-cache
 ```
+
+## CI
+
+The GitHub Actions workflow runs Swift tests and verifies the local app bundle build on `macos-latest`.
 
 ## Design Principles
 

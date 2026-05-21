@@ -25,6 +25,7 @@ mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
 
 cp "$BIN_DIR/$APP_NAME" "$MACOS_DIR/$APP_NAME"
 cp "$ROOT_DIR/packaging/Info.plist" "$CONTENTS_DIR/Info.plist"
+cp "$ROOT_DIR/packaging/SleepEye.icns" "$RESOURCES_DIR/SleepEye.icns"
 chmod +x "$MACOS_DIR/$APP_NAME"
 
 echo "Built $APP_DIR"
