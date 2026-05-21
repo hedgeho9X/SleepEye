@@ -6,10 +6,10 @@ import UserNotifications
 /// 系统通知是顶部浮层的兜底：当用户处在全屏应用、外接屏或没有注意菜单栏时，
 /// 仍然能收到“该休息了”的提醒。权限请求采用懒触发，避免应用首次启动就打断用户。
 final class NotificationScheduler {
-    private let center: UNUserNotificationCenter
+    private let center: UNUserNotificationCenter?
     private var hasRequestedAuthorization = false
 
-    init(center: UNUserNotificationCenter = .current()) {
+    init(center: UNUserNotificationCenter? = NotificationScheduler.makeDefaultCenter()) {
         self.center = center
     }
 
@@ -33,6 +33,10 @@ final class NotificationScheduler {
     }
 
     private func deliver(identifier: String, title: String, body: String) {
+        guard let center else {
+            return
+        }
+
         requestAuthorizationIfNeeded()
 
         let content = UNMutableNotificationContent()
@@ -46,6 +50,10 @@ final class NotificationScheduler {
     }
 
     private func requestAuthorizationIfNeeded() {
+        guard let center else {
+            return
+        }
+
         guard !hasRequestedAuthorization else {
             return
         }
@@ -60,5 +68,21 @@ final class NotificationScheduler {
                 // 用户拒绝通知时，应用仍然可以依靠菜单栏和顶部浮层工作。
             }
         }
+    }
+
+    private static func makeDefaultCenter() -> UNUserNotificationCenter? {
+        guard isRunningFromAppBundle else {
+            return nil
+        }
+
+        return .current()
+    }
+
+    /// `swift run` 启动的是 `.build/.../debug/SleepEye` 裸可执行文件，不是 macOS `.app`。
+    /// 在这种开发模式下调用 `UNUserNotificationCenter.current()` 会因为缺少 LaunchServices
+    /// bundle proxy 直接抛 Objective-C 异常，Swift 无法捕获。这里先禁用系统通知，
+    /// 等后续打包为真正 `.app` 后再自动启用通知能力。
+    private static var isRunningFromAppBundle: Bool {
+        Bundle.main.bundleURL.pathExtension.lowercased() == "app" && Bundle.main.bundleIdentifier != nil
     }
 }
