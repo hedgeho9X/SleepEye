@@ -15,25 +15,48 @@ final class OverlayWindowController {
     ///
     /// 专注阶段只在最后一分钟展示，避免长期占据屏幕注意力；休息阶段持续展示，
     /// 让用户明确知道当前应该离开屏幕。
-    func update(for snapshot: TimerSnapshot, reminderStrength: ReminderStrength) {
+    func update(
+        for snapshot: TimerSnapshot,
+        reminderStrength: ReminderStrength,
+        onRestPromptTapped: @escaping () -> Void
+    ) {
         guard let presentation = presentation(for: snapshot, reminderStrength: reminderStrength) else {
             hide()
             return
         }
 
-        show(snapshot: snapshot, title: presentation.title, subtitle: presentation.subtitle)
+        let isRestPrompt = snapshot.phase == .resting
+        show(
+            snapshot: snapshot,
+            title: presentation.title,
+            subtitle: presentation.subtitle,
+            actionTitle: isRestPrompt ? "点开休息" : nil,
+            onActivate: isRestPrompt ? onRestPromptTapped : nil
+        )
     }
 
     func hide() {
         panel?.orderOut(nil)
     }
 
-    private func show(snapshot: TimerSnapshot, title: String, subtitle: String) {
+    private func show(
+        snapshot: TimerSnapshot,
+        title: String,
+        subtitle: String,
+        actionTitle: String?,
+        onActivate: (() -> Void)?
+    ) {
         let panel = panel ?? makePanel()
         self.panel = panel
 
         panel.contentView = NSHostingView(
-            rootView: OverlayBannerView(snapshot: snapshot, title: title, subtitle: subtitle)
+            rootView: OverlayBannerView(
+                snapshot: snapshot,
+                title: title,
+                subtitle: subtitle,
+                actionTitle: actionTitle,
+                onActivate: onActivate
+            )
         )
         position(panel)
         panel.orderFrontRegardless()

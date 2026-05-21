@@ -16,21 +16,25 @@ final class AppState: ObservableObject {
     private let core: TimerCore
     private let notificationScheduler: NotificationScheduler
     private let overlayWindowController: OverlayWindowController
+    private let fullScreenBreakWindowController: FullScreenBreakWindowController
     private var ticker: Timer?
 
     init(
         core: TimerCore = TimerCore(),
         settings: SettingsStore? = nil,
         notificationScheduler: NotificationScheduler = NotificationScheduler(),
-        overlayWindowController: OverlayWindowController? = nil
+        overlayWindowController: OverlayWindowController? = nil,
+        fullScreenBreakWindowController: FullScreenBreakWindowController? = nil
     ) {
         let settings = settings ?? SettingsStore()
         let overlayWindowController = overlayWindowController ?? OverlayWindowController()
+        let fullScreenBreakWindowController = fullScreenBreakWindowController ?? FullScreenBreakWindowController()
 
         self.core = core
         self.settings = settings
         self.notificationScheduler = notificationScheduler
         self.overlayWindowController = overlayWindowController
+        self.fullScreenBreakWindowController = fullScreenBreakWindowController
         snapshot = core.snapshot()
 
         core.autoStartNextRound = settings.autoStartNextRound
@@ -111,6 +115,25 @@ final class AppState: ObservableObject {
         refresh()
     }
 
+    /// 打开沉浸式全屏休息倒计时。
+    ///
+    /// 这个动作只由用户点击休息提示条触发，避免应用主动全屏打断当前任务。
+    func showFullScreenBreakCountdown() {
+        guard snapshot.phase == .resting else {
+            return
+        }
+
+        fullScreenBreakWindowController.show(
+            snapshot: snapshot,
+            onEndBreak: { [weak self] in
+                self?.skipBreak()
+            },
+            onExtendBreak: { [weak self] in
+                self?.extendCurrentSession(by: 60)
+            }
+        )
+    }
+
     /// 结束当前休息，根据自动下一轮设置决定是否进入专注。
     func skipBreak() {
         core.autoStartNextRound = settings.autoStartNextRound
@@ -154,6 +177,13 @@ final class AppState: ObservableObject {
 
     private func refresh() {
         snapshot = core.snapshot()
-        overlayWindowController.update(for: snapshot, reminderStrength: settings.reminderStrength)
+        overlayWindowController.update(
+            for: snapshot,
+            reminderStrength: settings.reminderStrength,
+            onRestPromptTapped: { [weak self] in
+                self?.showFullScreenBreakCountdown()
+            }
+        )
+        fullScreenBreakWindowController.update(for: snapshot)
     }
 }
