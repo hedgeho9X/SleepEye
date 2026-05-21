@@ -87,6 +87,7 @@ final class OverlayWindowController {
         // 提示条需要贴近摄像头区域出现，使用 statusBar 层级才能浮在菜单栏中部之上。
         // 宽度被限制在屏幕中央一小段，避免遮住左右菜单与系统状态图标。
         panel.level = .statusBar
+        // 窗口本身保持 clear 只用于裁出圆角外沿；提示条可见内容使用不透明背景。
         panel.backgroundColor = .clear
         panel.isOpaque = false
         panel.hasShadow = true

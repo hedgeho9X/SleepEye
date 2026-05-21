@@ -4,6 +4,7 @@
 
 - Added ad-hoc signing during release packaging to reduce macOS Gatekeeper "damaged app" failures for early unsigned builds.
 - Added release troubleshooting notes for clearing quarantine on downloaded builds.
+- Changed the reminder island and full-screen break page to use opaque normal surfaces.
 
 ## 0.1.0
 

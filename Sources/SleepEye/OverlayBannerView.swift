@@ -127,7 +127,7 @@ struct OverlayBannerView: View {
                     cornerRadius: OverlayBannerLayout.cornerRadius,
                     style: .continuous
                 )
-                .stroke(Color.primary.opacity(0.10), lineWidth: 1)
+                .stroke(SleepEyePalette.islandBorder, lineWidth: 1)
             }
         }
         .buttonStyle(.plain)
@@ -177,7 +177,7 @@ private struct OverlayProgressBar: View {
         GeometryReader { proxy in
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 5, style: .continuous)
-                    .fill(color.opacity(0.16))
+                    .fill(SleepEyePalette.islandProgressTrack)
 
                 RoundedRectangle(cornerRadius: 5, style: .continuous)
                     .fill(color)

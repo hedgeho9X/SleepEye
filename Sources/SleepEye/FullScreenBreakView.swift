@@ -65,8 +65,8 @@ struct FullScreenBreakView: View {
 
             LinearGradient(
                 colors: [
-                    Color.white.opacity(0.78),
-                    SleepEyePalette.restAccentSoft.opacity(0.42),
+                    SleepEyePalette.restBackground,
+                    SleepEyePalette.restBackgroundSoft,
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -92,14 +92,14 @@ struct FullScreenBreakView: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .background(.white.opacity(0.72), in: Capsule())
+                .background(SleepEyePalette.restSurface, in: Capsule())
         }
     }
 
     private var countdownRing: some View {
         ZStack {
             Circle()
-                .stroke(SleepEyePalette.restAccent.opacity(0.14), lineWidth: 18)
+                .stroke(SleepEyePalette.restRingTrack, lineWidth: 18)
 
             Circle()
                 .trim(from: 0, to: snapshot.progress)
@@ -153,7 +153,7 @@ struct FullScreenBreakView: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity)
-        .background(.white.opacity(0.76), in: RoundedRectangle(cornerRadius: 8))
+        .background(SleepEyePalette.restSurface, in: RoundedRectangle(cornerRadius: 8))
     }
 
     private var actionButtons: some View {

@@ -6,7 +6,11 @@ import SwiftUI
 /// 这里优先使用低饱和、偏灰的绿色，让用户能看清状态，又不会被亮绿色晃到。
 enum SleepEyePalette {
     static let restAccent = Color(red: 0.45, green: 0.78, blue: 0.47)
-    static let restAccentSoft = Color(red: 0.82, green: 0.95, blue: 0.83)
     static let restBackground = Color.white
-    static let islandBackground = Color.white.opacity(0.22)
+    static let restBackgroundSoft = Color(red: 0.94, green: 0.99, blue: 0.94)
+    static let restSurface = Color.white
+    static let restRingTrack = Color(red: 0.86, green: 0.93, blue: 0.86)
+    static let islandBackground = Color(red: 0.96, green: 0.97, blue: 0.95)
+    static let islandBorder = Color(red: 0.78, green: 0.82, blue: 0.78)
+    static let islandProgressTrack = Color(red: 0.82, green: 0.89, blue: 0.82)
 }
