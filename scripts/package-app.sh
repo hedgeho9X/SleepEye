@@ -35,6 +35,12 @@ chmod +x "$MACOS_DIR/$APP_NAME"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$CONTENTS_DIR/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$CONTENTS_DIR/Info.plist"
 
+# 发布包在用户下载后会被 Gatekeeper 检查。这里先移除本地构建过程可能残留的扩展属性，
+# 再使用 ad-hoc 签名保证 bundle 结构完整，避免未签名包被误报成“已损坏”。
+xattr -cr "$APP_DIR" 2>/dev/null || true
+codesign --force --deep --sign - "$APP_DIR"
+codesign --verify --deep --strict --verbose=2 "$APP_DIR"
+
 rm -f "$ZIP_PATH" "$CHECKSUM_PATH"
 (
   cd "$ROOT_DIR/dist"

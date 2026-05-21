@@ -55,6 +55,22 @@ The generated app is unsigned and intended for local development / early release
 
 The bundle includes `packaging/SleepEye.icns` as the local app icon.
 
+## Open Downloaded Builds
+
+Current GitHub Release builds are ad-hoc signed, but not notarized with an Apple Developer ID yet. If macOS says `SleepEye` is damaged after downloading, move the app to `Applications`, then run:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/SleepEye.app
+open /Applications/SleepEye.app
+```
+
+If the app is still in `Downloads`, use:
+
+```bash
+xattr -dr com.apple.quarantine ~/Downloads/SleepEye.app
+open ~/Downloads/SleepEye.app
+```
+
 ## Release
 
 Version is stored in [`VERSION`](VERSION). For a local release package:
