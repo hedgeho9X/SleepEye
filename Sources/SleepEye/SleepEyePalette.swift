@@ -7,5 +7,6 @@ import SwiftUI
 enum SleepEyePalette {
     static let restAccent = Color(red: 0.45, green: 0.78, blue: 0.47)
     static let restAccentSoft = Color(red: 0.82, green: 0.95, blue: 0.83)
-    static let restBackground = Color.white.opacity(0.86)
+    static let restBackground = Color.white
+    static let islandBackground = Color.white.opacity(0.22)
 }

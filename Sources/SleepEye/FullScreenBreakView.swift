@@ -4,7 +4,7 @@ import SwiftUI
 /// 全屏休息页的可观察状态。
 ///
 /// 全屏窗口会持续存在，只更新这里的快照。相比每秒替换 `NSHostingView`，
-/// 这种做法能让圆环和横向进度条获得连续动画，视觉上不会一格一格跳。
+/// 这种做法能让圆环获得连续动画，视觉上不会一格一格跳。
 final class FullScreenBreakViewModel: ObservableObject {
     @Published var snapshot: TimerSnapshot
 
@@ -14,7 +14,7 @@ final class FullScreenBreakViewModel: ObservableObject {
 
     /// 更新休息倒计时。
     ///
-    /// 不在这里包全局动画，避免倒计时数字出现补间；圆环和进度条各自只动画自己的进度。
+    /// 不在这里包全局动画，避免倒计时数字出现补间；圆环自己只动画进度。
     func update(snapshot: TimerSnapshot) {
         self.snapshot = snapshot
     }
@@ -50,7 +50,6 @@ struct FullScreenBreakView: View {
                 }
 
                 countdownRing
-                breakProgressBar
                 restSuggestions
                 actionButtons
 
@@ -126,11 +125,6 @@ struct FullScreenBreakView: View {
         .frame(width: 330, height: 330)
     }
 
-    private var breakProgressBar: some View {
-        BreakProgressBar(progress: snapshot.progress)
-            .frame(maxWidth: 520)
-    }
-
     private var restSuggestions: some View {
         HStack(spacing: 12) {
             suggestionItem(icon: "mountain.2", title: "看远处", subtitle: "让眼肌放松")
@@ -189,24 +183,5 @@ struct FullScreenBreakView: View {
             .keyboardShortcut(.cancelAction)
         }
         .tint(SleepEyePalette.restAccent)
-    }
-}
-
-private struct BreakProgressBar: View {
-    let progress: Double
-
-    var body: some View {
-        GeometryReader { proxy in
-            ZStack(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(SleepEyePalette.restAccent.opacity(0.13))
-
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(SleepEyePalette.restAccent)
-                    .frame(width: proxy.size.width * CGFloat(progress))
-            }
-        }
-        .frame(height: 12)
-        .animation(.linear(duration: 1.0), value: progress)
     }
 }

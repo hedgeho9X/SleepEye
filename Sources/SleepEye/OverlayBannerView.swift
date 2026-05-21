@@ -116,7 +116,7 @@ struct OverlayBannerView: View {
             .frame(maxWidth: .infinity)
             .frame(height: OverlayBannerLayout.contentHeight)
             .background(
-                .ultraThinMaterial,
+                SleepEyePalette.islandBackground,
                 in: RoundedRectangle(
                     cornerRadius: OverlayBannerLayout.cornerRadius,
                     style: .continuous
