@@ -4,6 +4,8 @@
 
 # SleepEye
 
+[![CI](https://github.com/hedgeho9X/SleepEye/actions/workflows/ci.yml/badge.svg)](https://github.com/hedgeho9X/SleepEye/actions/workflows/ci.yml)
+
 SleepEye is a calm macOS menu bar break timer for people who stare at screens for too long.
 
 It starts small in the menu bar, then opens a soft white-green full-screen rest countdown when it is time to look away. The product is intentionally local, lightweight, and respectful: no account, no cloud sync, no forced lock-in.
