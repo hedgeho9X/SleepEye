@@ -11,8 +11,10 @@ struct SleepEyeApp: App {
     @StateObject private var appState = AppState()
 
     var body: some Scene {
-        MenuBarExtra("SleepEye", systemImage: appState.menuBarSymbol) {
+        MenuBarExtra {
             MenuBarView(appState: appState)
+        } label: {
+            Label(appState.menuBarTitle, systemImage: appState.menuBarSymbol)
         }
         .menuBarExtraStyle(.window)
 

@@ -57,6 +57,19 @@ final class AppState: ObservableObject {
         }
     }
 
+    /// 菜单栏入口显示的文字。
+    ///
+    /// 只显示小图标时，在刘海屏或菜单栏图标很多的机器上很容易被系统挤掉。
+    /// 开发阶段先显示文字/剩余时间，让用户能明确找到入口；后续打包版再提供“仅图标”选项。
+    var menuBarTitle: String {
+        switch snapshot.phase {
+        case .idle:
+            "SleepEye"
+        case .focusing, .resting, .paused:
+            snapshot.remainingText
+        }
+    }
+
     var canPause: Bool {
         snapshot.phase == .focusing || snapshot.phase == .resting
     }
