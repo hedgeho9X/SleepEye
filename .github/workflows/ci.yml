@@ -25,3 +25,11 @@ jobs:
 
       - name: Build local app bundle
         run: ./scripts/package-app.sh
+
+      - name: Upload local app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SleepEye-local-build
+          path: |
+            dist/SleepEye-*-macos.zip
+            dist/SleepEye-*-macos.sha256

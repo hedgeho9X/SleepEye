@@ -1,0 +1,39 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build release
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Swift version
+        run: swift --version
+
+      - name: Run tests
+        run: |
+          env CLANG_MODULE_CACHE_PATH=.build/clang-module-cache \
+            swift test --cache-path .build/swiftpm-cache
+
+      - name: Build release package
+        run: ./scripts/package-app.sh
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            dist/SleepEye-*-macos.zip \
+            dist/SleepEye-*-macos.sha256 \
+            --title "SleepEye $GITHUB_REF_NAME" \
+            --generate-notes
