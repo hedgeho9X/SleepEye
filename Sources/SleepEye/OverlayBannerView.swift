@@ -6,13 +6,13 @@ import SwiftUI
 /// 提示条需要跨过屏幕顶部中间区域，视觉上包住摄像头附近的信息密集区。
 /// 因此宽度按屏幕尺寸动态收敛，避免外接小屏时溢出，也避免大屏上过分铺开。
 enum OverlayBannerLayout {
-    static let panelHeight: CGFloat = 96
-    static let contentHeight: CGFloat = 88
-    static let cornerRadius: CGFloat = 30
+    static let panelHeight: CGFloat = 92
+    static let contentHeight: CGFloat = 82
+    static let cornerRadius: CGFloat = 26
 
     static func panelWidth(for screenFrame: CGRect) -> CGFloat {
-        let availableWidth = max(360, screenFrame.width - 32)
-        let preferredWidth = min(760, max(640, screenFrame.width * 0.56))
+        let availableWidth = max(420, screenFrame.width - 32)
+        let preferredWidth = min(620, max(500, screenFrame.width * 0.30))
         return min(preferredWidth, availableWidth)
     }
 }
@@ -71,19 +71,19 @@ struct OverlayBannerView: View {
         Button {
             model.onActivate?()
         } label: {
-            VStack(alignment: .leading, spacing: 14) {
-                HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 14) {
                     Image(systemName: iconName)
-                        .font(.system(size: 32, weight: .semibold))
+                        .font(.system(size: 30, weight: .semibold))
                         .foregroundStyle(iconColor)
-                        .frame(width: 42, height: 42)
+                        .frame(width: 38, height: 38)
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text(model.title)
-                            .font(.system(size: 20, weight: .semibold))
+                            .font(.system(size: 19, weight: .semibold))
                             .lineLimit(1)
                         Text(model.subtitle)
-                            .font(.system(size: 15, weight: .medium))
+                            .font(.system(size: 14, weight: .medium))
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
@@ -92,7 +92,7 @@ struct OverlayBannerView: View {
 
                     VStack(alignment: .trailing, spacing: 4) {
                         Text(snapshot.remainingText)
-                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .font(.system(size: 27, weight: .bold, design: .rounded))
                             .monospacedDigit()
 
                         if let actionTitle = model.actionTitle {
@@ -106,12 +106,12 @@ struct OverlayBannerView: View {
 
                 OverlayProgressBar(progress: snapshot.progress, color: iconColor)
             }
-            .padding(.horizontal, 32)
-            .padding(.vertical, 16)
+            .padding(.horizontal, 26)
+            .padding(.vertical, 14)
             .frame(maxWidth: .infinity)
             .frame(height: OverlayBannerLayout.contentHeight)
             .background(
-                .regularMaterial,
+                .ultraThinMaterial,
                 in: RoundedRectangle(
                     cornerRadius: OverlayBannerLayout.cornerRadius,
                     style: .continuous
@@ -153,7 +153,7 @@ struct OverlayBannerView: View {
     private var iconColor: Color {
         switch snapshot.phase {
         case .resting:
-            .green
+            SleepEyePalette.restAccent
         case .paused:
             .orange
         case .focusing:
@@ -172,7 +172,7 @@ private struct OverlayProgressBar: View {
         GeometryReader { proxy in
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 5, style: .continuous)
-                    .fill(color.opacity(0.18))
+                    .fill(color.opacity(0.16))
 
                 RoundedRectangle(cornerRadius: 5, style: .continuous)
                     .fill(color)

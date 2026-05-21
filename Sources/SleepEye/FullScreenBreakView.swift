@@ -63,9 +63,9 @@ struct FullScreenBreakView: View {
     private var background: some View {
         LinearGradient(
             colors: [
-                Color(red: 0.96, green: 1.0, blue: 0.96),
+                SleepEyePalette.restBackground,
                 Color.white,
-                Color(red: 0.88, green: 0.98, blue: 0.90),
+                SleepEyePalette.restAccentSoft,
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
@@ -81,7 +81,7 @@ struct FullScreenBreakView: View {
         HStack {
             Label("SleepEye Break", systemImage: "eye")
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(.green)
+                .foregroundStyle(SleepEyePalette.restAccent)
 
             Spacer()
 
@@ -97,12 +97,12 @@ struct FullScreenBreakView: View {
     private var countdownRing: some View {
         ZStack {
             Circle()
-                .stroke(Color.green.opacity(0.14), lineWidth: 18)
+                .stroke(SleepEyePalette.restAccent.opacity(0.14), lineWidth: 18)
 
             Circle()
                 .trim(from: 0, to: snapshot.progress)
                 .stroke(
-                    Color.green,
+                    SleepEyePalette.restAccent,
                     style: StrokeStyle(lineWidth: 18, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
@@ -138,7 +138,7 @@ struct FullScreenBreakView: View {
         HStack(spacing: 10) {
             Image(systemName: icon)
                 .font(.system(size: 19, weight: .semibold))
-                .foregroundStyle(.green)
+                .foregroundStyle(SleepEyePalette.restAccent)
                 .frame(width: 28, height: 28)
 
             VStack(alignment: .leading, spacing: 2) {
@@ -192,10 +192,10 @@ private struct BreakProgressBar: View {
         GeometryReader { proxy in
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(Color.green.opacity(0.13))
+                    .fill(SleepEyePalette.restAccent.opacity(0.13))
 
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(Color.green)
+                    .fill(SleepEyePalette.restAccent)
                     .frame(width: proxy.size.width * CGFloat(progress))
             }
         }

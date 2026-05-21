@@ -84,7 +84,9 @@ final class OverlayWindowController {
         )
 
         panel.isFloatingPanel = true
-        panel.level = .floating
+        // 提示条需要贴近摄像头区域出现，使用 statusBar 层级才能浮在菜单栏中部之上。
+        // 宽度被限制在屏幕中央一小段，避免遮住左右菜单与系统状态图标。
+        panel.level = .statusBar
         panel.backgroundColor = .clear
         panel.isOpaque = false
         panel.hasShadow = true
@@ -112,7 +114,7 @@ final class OverlayWindowController {
     private func position(_ panel: NSPanel) {
         let screenFrame = NSScreen.main?.frame ?? NSScreen.screens.first?.frame ?? .zero
         let size = panel.frame.size
-        let topPadding: CGFloat = 6
+        let topPadding: CGFloat = 4
         let origin = NSPoint(
             x: screenFrame.midX - size.width / 2,
             y: screenFrame.maxY - size.height - topPadding
