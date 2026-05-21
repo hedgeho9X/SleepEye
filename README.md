@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/sleepeye-banner.svg" alt="SleepEye banner" width="100%" />
+  <img src="docs/assets/sleepeye-banner.png" alt="SleepEye banner" width="100%" />
 </p>
 
 # SleepEye
@@ -52,9 +52,12 @@ env CLANG_MODULE_CACHE_PATH=.build/clang-module-cache swift test --cache-path .b
 
 - Build a signed `.app` bundle.
 - Add app icon and release packaging.
-- Add visual polish for the menu bar panel and settings window.
 - Add daily lightweight stats.
 - Re-enable system notifications for packaged `.app` builds.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
