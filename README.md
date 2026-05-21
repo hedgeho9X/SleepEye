@@ -34,6 +34,15 @@ env CLANG_MODULE_CACHE_PATH=.build/clang-module-cache swift run --cache-path .bu
 
 After launch, look for `SleepEye` in the macOS menu bar.
 
+## Build a Local App Bundle
+
+```bash
+./scripts/package-app.sh
+open dist/SleepEye.app
+```
+
+The generated app is unsigned and intended for local development. Public release builds still need signing and notarization.
+
 ## Test
 
 ```bash
